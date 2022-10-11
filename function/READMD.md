@@ -89,6 +89,8 @@ def example_func(positional, default="default", *args, **kwargs):
     return -1
 ```
 
+---
+
 ## lambda(람다 함수)
 - 이름을 지을 필요가 없는 간단한 형태의 함수
 - 다른 함수의 인자(argument)로 넣을 수 있다
@@ -111,3 +113,53 @@ print(plus_one(1))
 # lambda로 if statement 사용 시, else statement까지 필수적으로 사용해야함
 print((lambda x: True if x > 0 else False)(3))
 ```
+
+---
+
+## map, filter 함수
+### map 함수 사용법
+```python
+# map(함수, 순서가 있는 자료형)
+map(int, ["3", "4", "5", "6"])
+# return : map object
+
+list(map(int, ["3", "4", "5", "6"]))
+```
+### map 함수 활용
+```python
+# 리스트 각 요소 공백 지우기
+def strip_all(x):
+    return x.strip()
+
+
+items = [' el1', ' el2 ']
+# map(함수, 순서가 있는 자료형)
+items = list(map(strip_all, items))
+
+# 람다 함수와 함께 활용
+items = [' el1', ' el2 ']
+items = list(map(lambda x: x.strip(), items))
+```
+
+### filter 함수 사용법
+```python
+# filter(함수, 순서가 있는 자료형)
+def func(x):
+    return x < 0
+
+
+# return : filter object
+
+
+list(filter(func, [-3, -2, 0, 5, 7]))
+```
+
+
+
+
+
+
+
+
+
+
