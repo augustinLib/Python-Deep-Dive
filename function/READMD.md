@@ -1,7 +1,7 @@
 # function(함수)
 
 ## 목차
-[1. parameter(매개변수)](#parameter(매개변수))  
+[1. parameter(매개변수)]()
 [2. lambda(람다 함수)](#lambda(람다-함수))
 
 ## parameter(매개변수)
@@ -154,6 +154,68 @@ def func(x):
 list(filter(func, [-3, -2, 0, 5, 7]))
 ```
 
+---
+
+## 일급 객체로서의 함수(일급 함수)
+**파이썬의 함수는 일급 객체이다.** 일급 객체는 다음과 같은 특징을 지닌다.
+- 런타임에 생성할 수 있다.
+- 데이터 구조체의 변수나 요소에 할당할 수 있다.
+- 함수 인수로 전달할 수 있다.
+- 함수 결과로 반환할 수 있다.
+
+정수, 문자열, 딕셔너리와 같은 요소들도 일급 객체이다.  
+
+
+### 객체로서의 함수
+아래의 파이썬 콘솔을 살펴보면서 일급 객체로서의 함수의 특징을 살펴보자(not script)
+```pycon
+>>> def add_2(x):
+...    '''return x+2'''
+...    return x+2
+
+>>> add_2(3)
+5
+
+>>> add_2.__doc__
+'return x+2'
+
+>>> type(add_2)
+<class 'function'>
+```
+- 파이썬 콘솔 세션에 있기 때문에, 현재 함수를 런타임에 생성하는 것이다.
+- `__doc__`은 함수 객체의 속성 중 하나이다.
+- `add_2`는 function 클래스의 객체이다.
+
+
+아래에서 이어서 살펴보겠다.
+```pycon
+>>> add2 = add_2
+
+>>> add2
+<function add_2 at 0x10646eb90>
+
+>>> add2(4)
+6
+
+>>> list(map(add2, range(9)))
+[2, 3, 4, 5, 6, 7, 8, 9, 10]
+```
+- add_2 함수를 add2 변수에 할당하였고, 변수명을 통해 함수를 호출하였다.
+- 이러한 변수를 map()의 인자로 전달하였다.
+
+### 고위 함수(higher-order function)
+**고위 함수(higher-order function)란, 함수를 인수로 받거나 함수를 결과로 반환하는 함수를 말한다.**  
+대표적인 예시로는 `map()`, `sorted()`가 있다. sorted 함수는 선택적인 key 인수로 함수를 전달받아 정렬 대상에 적용한다.
+```pycon
+>>> fruits = ['watermelon', 'melon', 'strawberry', 'apple']
+>>> sorted(fruits, key=len)
+['melon', 'apple', 'watermelon', 'strawberry']
+
+def reverse(word):
+    return word[::-1]
+sorted(fruits, key=reverse)
+['apple', 'melon', 'watermelon', 'strawberry']
+```
 
 
 
