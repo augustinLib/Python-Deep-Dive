@@ -9,7 +9,6 @@ for passport in sorted(traveler_ids):
 for country, _ in sorted(traveler_ids):
     print(country)
 
-
 # tuple unpacking
 a = 10
 b = 20
