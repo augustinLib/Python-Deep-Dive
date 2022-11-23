@@ -218,10 +218,107 @@ sorted(fruits, key=reverse)
 ```
 
 
+### 익명 함수
+`lambda` 키워드는 파이썬 표현식 내에 익명 함수를 생성한다.  
+이 때, 람다 함수의 본체는 순수한 표현식으로만 구성되도록 제한된다.  
+즉, 람다 본체에서는 할당문이나, while, try 등의 파이썬 문장을 사용할 수 없다.  
+이러한 람다 함수는 위에서 언급한 고위 함수 안의 인자로써 유용하게 사용된다.
+```pycon
+>>> fruits = ["strawberry", "apple", "banana", "orange"]
+>>> sorted(fruits, key = lambda word : word[::-1])
+['banana', 'orange', 'apple', 'strawberry']
+```
+고위 함수 예시에서의 과일 이름 마지막 글자 기준 정렬이다. 
+`lambda` 키워드를 통해 간편하게 sorted() 함수를 이용할 수 있다.  
+
+## Callable 객체
+호출 연산자인 `()`는 사용자 정의 함수 이외의 다른 객체에도 사용할 수 있다.  
+호출할 수 있는 객체(Callable)인지 알아보려면 `callable()`내장 함수를 사용한다.  
+파이썬에는 다음과 같은 callable이 있다.
+- ### 사용자 정의 함수  
+  def 문이나 람다 표현식으로 생성
+- ### 내장 함수  
+  `len()`이나 `time.strftime()`처럼 C언어로 구현된 함수
+- ### 내장 메서드
+  `dict.get()`처럼 C언어로 구현된 메서드
+- ### 메서드
+  클래스 본체에 정의된 함수
+- ### 클래스
+  호출될 때 클래스는 자신의 `__new__()`메서드를 실행해서 객체를 생성하고, `__init__()`으로
+초기화한 후, 최정적으로 호출자에 객체를 반환한다. 파이썬에서는 new 연산자가 없기 때문에 클래스를 호출하는 것은 
+함수를 호출하는것과 동일하다.(일반적으로 클래스를 호출하면 해당 클래스의 객체가 생성되지만, `__new__()` 메서드를
+오버라이딩 하면 다르게 작동할 수 있다.)
+- ### 클래스 객체
+  클래스가 `__call__()`메서드를 구현하면 이 클래스의 객체는 함수로 호출될 수 있다.
+- ### 제네레이터 함수
+  `yield`키워드를 사용하는 함수나 메서드. 이 함수가 호출되면 제네레이터 객체를 반환한다.
 
 
+파이썬에는 다양한 callable 형이 존재하기 때문에, `callable()` 내장 함수를 사용하여 호출할 수 있는 객체인지
+판단하는 방법이 가장 안전하다. 아래의 예시를 확인해보자.
+```pycon
+>>> abs, str, 13
+(<built-in function abs>, <class 'str'>, 13)
+
+>>> [callable(obj) for obj in (abs, str, 13)]
+[True, True, False]
+```
+abs는 내장 함수, str은 클래스로써 callable형이며, 13은 callable형이 아니다.  
+이를 확인하기 위해 `callable()` 내장 함수를 이용하면, 실제로 `["True", "True", "False"]` 가 출력됨을 확인할 수 있다.
+
+## 사용자 정의 callable형
+파이썬 함수가 실제 객체일 뿐만 아니라, 모든 파이썬 객체가 함수처럼 동작하게 만들 수 있다.  
+`__call__()` 인스턴스 메소드를 구현하면 모든 파이썬 객체를 함수처럼 동작하게 만들 수 있다.  
+
+```python
+import random
 
 
+class BingoCage:
+    def __init__(self, items):
+        self._items = list(items)
+        # self._items가 리스트이기에 shuffle()메서드 실행 보장
+        random.shuffle(self._items)
 
+    # 핵심 메서드
+    def pick(self):
+        try:
+            return self._items.pop()
+        except IndexError:
+            # self._items가 비어있으면 사용자 정의 메시지를 담은 예외 발생시킴
+            raise LookupError('pick from empty BingoCage')
 
+    # bingo.pick()에 대한 단축 형태로 bingo() 정의
+    def __call__(self):
+        return self.pick()
+```
+```pycon
+>>> bingo = BingoCage(range(3))
+>>> bingo.pick()
+2
+>>> bingo()
+0
+>>> callable(bingo)
+True
+```
+BingoCage의 경우 객체를 함수처럼 호출할 때마다 항목을 하나 꺼낸 후 변경된 상태를 유지해야 하는데, `__call__()`메서드를 구현하면 이런 객체를 생성하기 쉽다.  
+이런 예로는 decorator가 있다. decorator는 함수이지만, 때때로 호출된 후의 상태를 기억할 수 있는 기능이 유용하게 사용된다.  
+
+## 함수 인트로스펙션
+함수 객체는 `__doc__`이외에도 많은 속성을 가지고 있다. 일반적인 객체에는 없지만 함수에는 있는 고유한 속성을 알아보자.  
+집합으로 변환한 뒤, 차집합을 구하는 방식으로 객체에는 없지만 함수에는 있는 고유한 속성을 나타내보았다. 
+```pycon
+>>> class C: pass
+>>> obj = C()
+>>> def func(): pass
+>>> sorted(set(dir(func)) - set(dir(obj)))
+['__annotations__', '__call__', '__closure__', '__code__', '__defaults__', '__get__', '__globals__', '__kwdefaults__', '__name__', '__qualname__']
+```
+
+## 함수 매개변수에 대한 정보
+함수에 어떤 매개변수가 필요한지, 매개변수에 기본값이 있는지 없는지 확인할 수 있는 방법은 무엇이 있을까?  
+함수 객체 안의 `__defaults__`속성에는 위치 인수와 키워드 인수의 기본값을 가진 튜플이 들어있다.  
+키워드 전용 인수의 기본값은 `__kwdefaults__`속성에 들어 있다. 그러나 인수명은 `__code__`속성에 들어 있는데,  
+이 속성은 여러 속성을 담고 있는 code 객체를 가리킨다.  
+예제와 함께 알아보자
 
