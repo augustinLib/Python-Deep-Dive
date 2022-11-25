@@ -321,4 +321,65 @@ BingoCage의 경우 객체를 함수처럼 호출할 때마다 항목을 하나 
 키워드 전용 인수의 기본값은 `__kwdefaults__`속성에 들어 있다. 그러나 인수명은 `__code__`속성에 들어 있는데,  
 이 속성은 여러 속성을 담고 있는 code 객체를 가리킨다.  
 예제와 함께 알아보자
+```python
+def clip(text, max_len = 80):
+    """
+    max_len 앞이나 뒤의 마지막 공백에서 잘라낸 텍스트 반환
+    """
+    end = None
+    if len(text) > max_len:
+        space_before = text.rfind(" ", 0, max_len)
+        if space_before >= 0:
+            end = space_before
+        else:
+            space_after = text.rfind(" ", max_len)
+            if space_after >= 0:
+                end = space_after
 
+    if end is None:
+        end = len(text)
+    return text[:end].rstrip()
+```
+다음과 같이 원하는 길이 가까이에 있는 공백을 기준으로 문자열을 잘라서 반환하는, 문자열 단축 함수가 있다.  
+```pycon
+>>> clip.__defaults__
+(80,)
+
+>>> clip.__code__.co_varnames
+('text', 'max_len', 'end', 'space_before', 'space_after')
+
+>>> clip.__code__.co_argcount
+2
+```
+`__defaults__`를 통해 함수의 위치 인수와 키워드 인수의 기본값을 확인할 수 있다.  
+또한 `__code__`를 통해 더 자세히 알아볼 수 있는데, `__code__.co_varnames`를 통해 인수명과 함수 본체에서 생성한 지역 변수명도 들어 있다.  
+이 때, 맨 앞의 `__code__.co_argcount`로 나오는 개수만큼이 함수의 인수명이고, 그 뒤는 모두 함수 본체에서 생성한 지역 변수이다.  
+그러나, 이런 방식으로 보면 매우 복잡하고, 가독성도 떨어진다.  
+그래서 `inspect`모듈을 사용하면 더욱 깔끔하게 나타낼 수 있다.  
+```pycon
+>>> from inspect import signature
+>>> sig = signature(clip)
+>>> str(sig)
+
+>>> for name, param in sig.parameters.items():
+...     print(param.kind, ":", name, '=', param.default)
+POSITIONAL_OR_KEYWORD : text = <class 'inspect._empty'>
+POSITIONAL_OR_KEYWORD : max_len = 80
+```
+`inspect.signature()`는 inspect.Signature 객체를 반환하며, 이 객체에 들어 있는 `parameters`속성을 이용하면 정렬된 `inspect.Parameter` 객체를 읽을 수 있다.  
+각 `Parameter`객체 안에는 name, default, kind 등의 속성이 들어 있다.  
+`inspect._empty`라는 값은 해당 매개변수에 default 값이 없음을 나타낸다.
+`kind`속성은 `_ParameterKind`클래스에 정의된 다음 다섯 가지 값 중 하나를 가진다.  
+- ### POSITIONAL_OR_KEYWORD
+  위치 인수나 키워드 인수로 전달할 수 있는 매개변수(파이썬 함수 매개변수 대부분이 여기에 속한다.)  
+- ### VAR_POSITIONAL
+  위치 매개변수의 튜플
+- ### VAR_KEYWORD
+  키워드 매개변수의 딕셔너리
+- ### KEYWORD_ONLY
+  키워드 전용 매개변수(Python 3)
+- ### POSITIONAL_ONLY
+  위치 전용 매개변수. 현재 파이썬 함수 선언 구문에서는 지원되지 않지만, 키워드로 전달한 매개 변수를 받지 않는 `divmod()`처럼 C언어로 구현된 기존 함수가 여기에 속함  
+
+
+## 함수 애너테이션(Function Annotation)
