@@ -383,3 +383,53 @@ POSITIONAL_OR_KEYWORD : max_len = 80
 
 
 ## 함수 애너테이션(Function Annotation)
+파이썬 3부터는 함수의 매개변수와 반환값에 메타데이터를 추가할 수 있는 구문을 제공한다.  
+위에서 알아봤던 clip()함수에 애너테이션을 추가한 버전을 살펴보겠다.
+```python
+def clip(text:str, max_len:'int > 0' = 80) -> str:
+    """
+    max_len 앞이나 뒤의 마지막 공백에서 잘라낸 텍스트 반환
+    """
+    end = None
+    if len(text) > max_len:
+        space_before = text.rfind(" ", 0, max_len)
+        if space_before >= 0:
+            end = space_before
+        else:
+            space_after = text.rfind(" ", max_len)
+            if space_after >= 0:
+                end = space_after
+
+    if end is None:
+        end = len(text)
+    return text[:end].rstrip()
+```
+함수 선언에서 각 매개변수에는 콜론(:)뒤에 애너테이션 표현식을 추가할 수 있다. 기본값이 있을 때, 애너테이션은 인수명과 등호(=)사이에 들어간다.  
+반환값에 애너테이션을 추가하려면 매개변수를 닫는 괄호와 함수 선언의 제일 뒤에 오는 콜론 사이에 -> 기호와 표현식을 추가한다.  
+이 때, 애너테이션 표현식은 어떠한 자료형도 될 수 있다. str이나 int와 같은 클래스, 혹은 위 예제에서의 `max_len`에 대한 애너테이션인
+`'int > 0'` 과 같은 문자열이 애너테이션에 가장 널리 사용되는 자료형이다.  
+애너테이션은 인터프리터가 전혀 처리하지 않으며, 오로지 함수 객체 안의 dict형 `__annotations__`속성에 저장될 뿐이다.
+```pycon
+>>> clip.__annotations__
+{'text': <class 'str'>, 'max_len': 'int > 0', 'return': <class 'str'>}
+```
+다음과 같이 dictionary에 작성했던 parameter와 return의 annotation이 출력됨을 확인할 수 있다.  
+언급한대로, 애너테이션은 파이썬 인터프리터에 아무런 영향을 끼치지 않는다.  
+위에서 잠깐 알아본 `inspect.signature()` 라이브러리로 애너테이션을 추출할 수 있다.
+```pycon
+>>> from inspect import signature
+>>> sig = signature(clip)
+>>> sig.return_annotation
+<class 'str'>
+
+>>> for param in sig.parameters.values():
+...     note = repr(param.annotation).ljust(13)
+...     print(note, ":", param.name, "=", param.default)
+    
+<class 'str'> : text = <class 'inspect._empty'>
+'int > 0'     : max_len = 80
+```
+`signature()`함수는 `Signature`객체를 반환한다. `Signature`에는 `return_annotation`과 `parameters` 속성이 있는데,  
+`parameters`는 파라미터명을 `Parameter`객체에 매핑하는 딕셔너리다. 각 `Parameter`객체는 annotation 속성을 가지고 있는데, 예제에서 이를 이용하여 에너테이션을 출력했다.  
+
+
