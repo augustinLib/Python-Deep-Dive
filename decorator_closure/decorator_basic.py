@@ -5,9 +5,9 @@ def deco(func):
     return inner
 
 @deco
-# decorated()를 deco로 decorate!
+# target()을 deco로 decorate!
 def target():
-    print("running decorated()")
+    print("running target()")
 
 
 # decorated된 target()을 호출하면 실제로는 inner()을 실행함
